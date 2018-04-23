@@ -35,10 +35,7 @@
         methods: {
             getOfferLog () {
                 myFn.ajax('get', {pid: this.id}, apiAddress.center.offerLog, (res) => {
-                    for (var i = 0; i < res.data.data.length; i++) {
-                        this.offer_list.push(res.data.data[i]);
-                        if (i > 1) return false;
-                    };
+                    this.offer_list = res.data.data
                 })
             }
         }

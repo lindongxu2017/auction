@@ -1,5 +1,5 @@
 <template>
-    <div class="balance">
+    <div class="balance" v-infinite-scroll="loadMore" :infinite-scroll-disabled="loading" infinite-scroll-distance="10">
         <div class="header">
             <div>
                 <p>账户余额</p>
@@ -22,8 +22,9 @@
             </thead>
             <tbody>
                 <tr v-for="item in list">
-                    <td v-html="item.create_time" style="color:#a2a2a3">2017/11/15 15:30</td>
-                    <td v-html="item.change" style="color:#209cf2">+ 3000</td>
+                    <td v-html="item.create_time">2017/11/15 15:30</td>
+                    <td v-if="Number(item.change) > 0" class="plus" v-html="'+' + item.change">+ 3000</td>
+                    <td v-else class="minus" v-html="item.change">+ 3000</td>
                 </tr>
             </tbody>
         </table>
@@ -37,18 +38,31 @@
         data () {
             return {
                 userData: {},
-                list: []
+                list: [],
+                loading: false,
+                total: 1,
+                page: 0
             }
         },
         mounted () {
             this.checkout_balance();
-            myFn.ajax('get', {}, apiAddress.center.incomeLog, (res) => {
-                this.list = res.data.data;
-            })
         },
         methods: {
+            loadMore () {
+                this.loading = true;
+                setTimeout(() => {
+                    this.loading = false;
+                    if (this.list.length >= this.total) return false;
+                    this.page ++;
+                    myFn.ajax('get', {page: this.page}, apiAddress.center.incomeLog, (res) => {
+                        this.list = this.list.concat(res.data.data);
+                        this.total = res.data.total
+                    })
+                }, 1000)
+            },
             goRecharge () {
-                location.href = location.protocol + '//' + location.hostname + '/mobile/?/#/index/center/balance/recharge/1'
+                // wx.miniProgram.navigateTo({url: '/pages/recharge/recharge?type=2'});
+                location.href = location.protocol + '//' + location.hostname + '/mobile/?/#/index/center/balance/recharge/2'
                 // this.$router.push({name: 'recharge', params: {type: 2}});
             },
             checkout_balance () {
@@ -105,13 +119,13 @@
     .header > div p:first-child {
         color: #9398A5;
         font-size: 14px;
-        margin-bottom: 5px;
-        padding-top: 15px;
+        margin-bottom: 10px;
+        padding-top: 10px;
     }
     .header > div p:nth-child(2) {
         font-size: 45px;
         color: #fff;
-        margin-bottom: 5px;
+        margin-bottom: 10px;
     }
     .header > div button {
         font-size: 14px;
@@ -178,9 +192,18 @@
         height: 45px;
         text-align: center;
         font-size: 14px;
-        color: #888;
+        color: #6f6f6f;
         border-bottom: 1px solid #d4d4d4;
         position: relative;
+    }
+    tbody tr td:nth-child(2) {
+        font-size: 18px;
+    }
+    tbody tr td.plus {
+        color: #209cf2;
+    }
+    tbody tr td.minus {
+        color: #EA5F39;
     }
     tbody tr td:before {
         content: '';

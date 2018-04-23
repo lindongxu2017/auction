@@ -53,17 +53,32 @@
         data () {
             return {
                 selected: '',
-                path: ''
+                path: '',
+                id: ''
             }
         },
         beforeRouteEnter (to, from, next) {
-            if (from.path === '/index/auction/room') {
-                Indicator.close();
+            if (localStorage.userInfo) {
+                if (from.path === '/index/auction/room/' + JSON.parse(localStorage.userInfo).uid) {
+                    Indicator.close();
+                    window.is_inroom = false;
+                    if (window.websocket) {
+                        window.websocket.send(JSON.stringify({type: 'exit_room', room_id: 1}))
+                        window.websocket.close();
+                        window.websocket = false;
+                    }
+                    clearInterval(window.periods_timer)
+                };
             };
-            next();
+            next()
         },
         mounted () {
             this.routerChange();
+            if (localStorage.userInfo) {
+                this.id = JSON.parse(localStorage.userInfo).uid;
+            } else {
+                this.id = 0;
+            }
         },
         methods: {
             routerChange () {
@@ -93,7 +108,13 @@
                     case 3: goName = 'specialAuction'; break;
                     case 4: goName = 'center'; break;
                 }
-                this.$router.push({name: goName});
+                if (localStorage.userInfo) {
+                    if (goName === 'room') {
+                        this.$router.push({name: goName, params: {id: this.id}});
+                    } else {
+                        this.$router.push({name: goName});
+                    }
+                }
             }
         }
     }

@@ -2,9 +2,10 @@
     <div class="specialAuctionList">
         <mt-navbar v-model="selectedTab">
             <mt-tab-item id="1" @click.native="getlist(1)">正在拍卖</mt-tab-item>
+            <mt-tab-item id="3" @click.native="getlist(1)">待拍卖</mt-tab-item>
             <mt-tab-item id="2" @click.native="getlist(1)">已结束拍卖</mt-tab-item>
         </mt-navbar>
-
+ 
         <!-- tab-container -->
         <mt-tab-container v-model="selectedTab">
             <mt-tab-container-item id="1">
@@ -24,8 +25,31 @@
                         </div> -->
                         <button class="instantAuction">立即拍</button>
                     </li>
-                    <div class="noMore" v-if="auctioning.length == 0">当前房间暂无拍品</div>
                 </ul>
+                <div class="noMore" v-if="auctioning.length == 0">暂无拍品</div>
+            </mt-tab-container-item>
+            <mt-tab-container-item id="3">
+                <ul>
+                    <li v-for="(item,index) in auctioned" @click="go_details(3, item.pid)">
+                        <div class="visibility">
+                            <img :src="item.pictures" />
+                            <p class="title" v-html="item.pname"></p>
+                        </div>
+                        <img :src="item.pictures" />
+                        <p class="current_money">
+                            <span v-html="'市场价 ' + item.price"></span>
+                        </p>
+                        <p class="offer out" style="margin-bottom: 0;color:#1b1a1d;"><span v-html="'开拍时间：'"></span></p>
+                        <p class="offer out"><span v-html="item.starttime"></span></p>
+                        <!-- <p class="offer out"><span v-html="item.uid == 0?'未成交':'成交价格 ' + item.nowprice"></span></p> -->
+                        <!-- <div class="instantAuction">
+                            <p>再来</p>
+                            <p>一次</p>
+                        </div>
+                        <button class="instantAuction" :class="[item.isagain == 0?'':'isAgain']" @click.stop="again(item.pid,index,item.isagain)">再来一次</button> -->
+                    </li>
+                </ul>
+                <div class="noMore" v-if="auctioned.length == 0">暂无拍品</div>
             </mt-tab-container-item>
             <mt-tab-container-item id="2">
                 <ul>
@@ -46,7 +70,7 @@
                         <button class="instantAuction" :class="[item.isagain == 0?'':'isAgain']" @click.stop="again(item.pid,index,item.isagain)">再来一次</button>
                     </li>
                 </ul>
-                <div class="noMore" v-if="auctioned.length == 0">当前房间暂无拍品</div>
+                <div class="noMore" v-if="auctioned.length == 0">暂无拍品</div>
             </mt-tab-container-item>
         </mt-tab-container>
     </div>
@@ -109,6 +133,15 @@
             go_details (type, id) {
                 this.$router.push({name: 'specialAuctionDetails', params: {id: id, roomType: type}})
             }
+        },
+        filters: {
+            /* getDate: function (value) {
+                var sec = myFn.timeDifference(value);
+                var nowSec = Math.round(new Date().getTime() / 1000);
+                console.log(myFn.arrive_timer_format(sec - nowSec))
+                // console.log(myFn.timeDifference(value))
+                return 1;
+            } */
         }
     }
 </script>

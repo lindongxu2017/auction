@@ -1,14 +1,14 @@
 <template>
     <div class="orderDetails">
         <div class="user-info">
-            <p v-html="orderData.receiver_name">杰克斯派洛</p>
-            <p v-html="orderData.mobile">18088888888</p>
-            <p v-html="orderData.receiver_addr">深圳市福田区上沙6坊深圳市福田区上沙6坊深圳市福田区上沙6坊深圳市福田区上沙6坊</p>
+            <p v-html="orderData.receiver_name"></p>
+            <p v-html="orderData.mobile"></p>
+            <p v-html="orderData.receiver_addr"></p>
         </div>
         <div class="order-content">
             <div class="order-info" @click="goPage">
                 <mt-cell>
-                    <img slot="icon" :src="orderData.pictures">
+                    <img slot="icon" :src="orderData.image">
                     <span slot="title" class="text-content">
                         <p class="goods-name title" v-html="orderData.pname">PIAGET伯爵SUNNYSIDEOFLIEF高级珠宝腕表</p>
                         <p class="goods-classify">类型：<span v-html="orderData.order_type==1?'专场订单':'拍卖会订单'">0元起拍</span></p>
@@ -21,8 +21,10 @@
         <div class="send-time">
             <p>订单编号：<span v-html="orderData.order_no">EQ78454854854545874</span></p>
             <p>创建时间：<span v-html="orderData.time">2017/11/11 15:22:30</span></p>
-            <p>付款时间：<span v-html="orderData.pay_time">2017/11/11 15:22:30</span></p>
-            <p>发货时间：<span v-html="orderData.send_time">2017/11/11 15:22:30</span></p>
+            <p v-if="parseInt(orderData.status) > 1">物流单号：<span v-html="orderData.logistics_number"></span></p>
+            <p v-if="parseInt(orderData.status) > 1">物流公司：<span v-html="orderData.logistics_company"></span></p>
+            <p v-if="orderData.status != 0">付款时间：<span v-html="orderData.pay_time">2017/11/11 15:22:30</span></p>
+            <p v-if="parseInt(orderData.status) > 1">发货时间：<span v-html="orderData.send_time">2017/11/11 15:22:30</span></p> 
         </div>
     </div>
 </template>

@@ -8,7 +8,12 @@ var apiAddress = {
     // 认证、支付、绑定
     admin: {
         getMobileCode: '/index.php/Login/getMobileCode', // 获取手机验证码
-        binding: '/index.php/Login/binding' // 绑定手机号
+        binding: '/index.php/Login/binding', // 绑定手机号
+        orderID: '/index.php/paymant/makePMcOrder', // 生成订单ID
+        getQRcode: '/index.php/member/getDownLine', // 获取二维码
+        setUserDown: '/index.php/member/setUserDown', // 成为下级
+        cash: '/index.php/Home/Withdraw/apply', // 提现
+        cashlist: '/index.php/Home/Withdraw/getList' // 提现列表
     },
     // 首页
     home: {
@@ -45,7 +50,10 @@ var apiAddress = {
         getBond: '/index.php/Home/System/get_deposit', // 获取最低保证金
         telephone: '/index.php/Home/System/customer_phone', // 获取客服电话
         experience: '/index.php/Home/Member/getRankInfo', // 获取经验
-        offerLog: '/index.php/Home/AuctionSpecial/get_auction_record_list' // 获取出价记录
+        offerLog: '/index.php/Home/AuctionSpecial/get_auction_record_list', // 获取出价记录
+        // 修改个人信息
+        username: '/index.php/member/updateNickname', // 修改昵称
+        headimg: '/index.php/member/updateHeadimgurl' // 修改头像
     },
     // 专场拍卖
     specialAuction: {
@@ -55,13 +63,15 @@ var apiAddress = {
         setPrice: '/index.php/Home/AuctionSpecial/raise_price', // 拍卖会加价
         open_remind: '/index.php/Home/AuctionSpecial/add_remind', // 开启提醒
         close_remind: '/index.php/Home/AuctionSpecial/cancel_remind', // 关闭提醒
-        again: '/index.php/Home/AuctionSpecial/again' // 再来一次
+        again: '/index.php/Home/AuctionSpecial/again', // 再来一次
+        remindType: '/index.php/Home/AuctionSpecial/add_bidpric_remind' // 设置提醒类型
     },
     // 拍卖会
     auction: {
         shopList: '/index.php/Home/Auction/preview_goods_list', // 拍卖列表
         shopDetails: '/index.php/Home/Auction/goods_detail', // 拍品详情传pid
-        remid: '/index.php/Home/Auction/add_remind' // 提醒传pid
+        remid: '/index.php/Home/Auction/add_remind', // 提醒传pid
+        redPacket: '/index.php/Auction/red_packet_info' // 红包详情
     }
 }
 export {apiAddress}

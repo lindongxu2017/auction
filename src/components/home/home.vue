@@ -8,7 +8,7 @@
         <ul class="classification">
             <li v-for="item in classifylist" :class="[item.cid==pageDate.cid?'active':'']" v-html="item.name" @click="toggleClass(item.cid)" ></li>
         </ul>
-        <ul class="scroll-ul scroll-ul-bottom" v-infinite-scroll="loadMore" infinite-scroll-disabled="loading" infinite-scroll-distance="0">
+        <ul class="scroll-ul scroll-ul-bottom" v-infinite-scroll="loadMore" :infinite-scroll-disabled="loading" infinite-scroll-distance="0">
             <!-- @click="item.id" -->
             <li v-for="(item,index) in list" @click="go_details(item.id)">
                 <div class="content">
@@ -30,7 +30,6 @@
             </li>
             <li class="noMore" v-if="list.length>=total">暂无更多数据...</li>
         </ul>
-
     </div>
 </template>
 
@@ -54,16 +53,20 @@
                 total: 1
             };
         },
+        beforeMount () {
+            /* if (!localStorage.userInfo) {
+                myFn.wxlogin();
+            }; */
+        },
         mounted () {
-            // localStorage.userInfo = '';
             this.getCarouselImg();
             this.getClassList();
-            if (!localStorage.userInfo && myFn.GetQueryString('code') !== '') {
-                myFn.wxlogin();
-                return false;
-            }
+            this.getInfo();
         },
         methods: {
+            getInfo () {
+                myFn.ajax('get', {}, apiAddress.center.userData, (res) => {})
+            },
             getCarouselImg () {
                 myFn.ajax('get', {}, apiAddress.home.carouselImg, (res) => {
                     this.imglist = res.data;
@@ -79,7 +82,6 @@
                 myFn.ajax('get', this.pageDate, apiAddress.home.goodslist, (res) => {
                     this.list = this.list.concat(res.data.data);
                     this.total = res.data.total;
-                    this.loading = false;
                 })
             },
             toggleSupport (id, isSupport, index) {
@@ -90,11 +92,12 @@
                 })
             },
             loadMore () {
-                if (this.list.length >= this.total) return;
                 this.loading = true;
+                if (this.list.length >= this.total) return;
+                this.pageDate.page ++;
                 setTimeout(() => {
-                    this.pageDate.page ++;
                     this.getGoodsList();
+                    this.loading = false;
                 }, 1000);
             },
             go_details (id) {
@@ -198,7 +201,7 @@
         position: absolute;
         right: 10px;
         top: 65%;
-        margin-top: -34px;
+        margin-top: -30px;
         text-align: center;
         font-size: 12px;
         line-height: 17px;

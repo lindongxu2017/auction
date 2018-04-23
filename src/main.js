@@ -17,7 +17,7 @@ import {apiAddress} from './js/apiAddress.js'
 
 window.myFn = myFn;
 window.apiAddress = apiAddress;
-
+window.is_inroom = false;
 Vue.use(MintUI)
 
 Vue.config.productionTip = false

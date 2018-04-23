@@ -23,20 +23,51 @@
         },
         watch: {
             currentMoney: function (newVal, oldVal) {
-                this.money = parseFloat(this.currentMoney) + parseInt(this.limit);
+                this.money = parseFloat(this.currentMoney) + parseFloat(this.limit);
             }
         },
         methods: {
+            accAdd (arg1, arg2) {
+                var r1, r2, m;
+                try {
+                    r1 = arg1.toString().split('.')[1].length;
+                } catch (e) {
+                    r1 = 0;
+                }
+                try {
+                    r2 = arg2.toString().split('.')[1].length;
+                } catch (e) {
+                    r2 = 0
+                }
+                m = Math.pow(10, Math.max(r1, r2))
+                return (arg1 * m + arg2 * m) / m
+            },
+            subtr (arg1, arg2) {
+                var r1, r2, m, n;
+                try {
+                    r1 = arg1.toString().split('.')[1].length
+                } catch (e) {
+                    r1 = 0;
+                }
+                try {
+                    r2 = arg2.toString().split('.')[1].length
+                } catch (e) {
+                    r2 = 0
+                }
+                m = Math.pow(10, Math.max(r1, r2));
+                n = (r1 >= r2) ? r1 : r2;
+                return ((arg1 * m - arg2 * m) / m).toFixed(n);
+            },
             reduceMoney () {
-                if (this.money > parseInt(this.currentMoney) + parseInt(this.limit)) {
-                    this.money = this.money - parseInt(this.limit);
+                if (this.money > this.subtr(this.currentMoney, this.limit)) {
+                    this.money = this.subtr(this.money, this.limit);
                 }
             },
             addMoney () {
-                this.money = this.money + parseInt(this.limit);
+                this.money = this.accAdd(this.money, this.limit);
             },
             close_popup () {
-                this.$emit('input', false);
+                this.$emit('input', false, 1, this.money);
             },
             confirm_add () {
                 // 出价请求,成功后关闭遮罩层
@@ -44,9 +75,9 @@
                     pid: this.shopId,
                     money: this.money
                 } */
-                this.$emit('input', false);
+                this.$emit('input', false, 2, this.money);
                 this.$emit('auction', this.money, false);
-                this.$emit('specialAuction', this.money);
+                // this.$emit('specialAuction', this.money);
             }
         },
         props: ['popup', 'currentMoney', 'limit', 'shopId']
@@ -85,7 +116,7 @@
         border: 2px #C0BA96 solid;
         vertical-align: middle;
         font-size: 30px;
-        line-height: 35px;
+        line-height: 40px;
         color: #C0BA96;
     }
     .prompt {

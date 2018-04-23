@@ -177,7 +177,7 @@
                 };
                 myFn.uploadImg(formData, apiAddress.center.appeal, (res) => {
                     alert('已收到维权信息，请等待结果!')
-                    this.$router.push({name: 'pendingReceive'});
+                    this.$router.push({name: 'protectRightsList'});
                 });
             }
         }

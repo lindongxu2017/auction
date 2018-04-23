@@ -4,7 +4,7 @@
             <p>支付金额</p>
             <div class="input-wrapper">
                 <div>￥</div>
-                <div><span v-html="orderInfo.total_money"></span></div>
+                <div><span v-html="orderInfo.total_money || '0.00'"></span></div>
             </div>
         </div>
         <div class="select">
@@ -13,21 +13,23 @@
             <img class="payBalance" src="../../assets/icon/balance.png">
             <mt-radio align="right" title="支付方式" v-model="value" :options="options"></mt-radio>
         </div>
-        <!-- <mt-field label="支付密码" placeholder="请输入密码" type="password" v-if="value==1" v-model="password"></mt-field>
-        <mt-field label="汇款单号" placeholder="请输入汇款单号" v-if="value==2" v-model="username"></mt-field> -->
+        <!-- <mt-field label="支付密码" placeholder="请输入密码" type="password" v-if="value==1" v-model="password"></mt-field> -->
+        <mt-field label="汇款单号" placeholder="请输入汇款单号" v-if="value==4" v-model="order_no"></mt-field>
         <div class="submit-btn">
-            <mt-button type="primary" size="large" @click="isDefaultAddress">支付</mt-button>
+            <mt-button type="primary" size="large" @click="submit">支付</mt-button>
         </div>
     </div>
 </template>
 
 <script>
+    import { MessageBox } from 'mint-ui';
     export default {
         name: 'pay',
         data () {
             return {
                 id: '',
-                username: '',
+                payid: '',
+                order_no: '',
                 password: '',
                 options: [
                     {
@@ -45,12 +47,19 @@
                 ],
                 value: '1',
                 orderInfo: {},
-                addressID: ''
+                addressID: '',
+                parameter: {}
             }
         },
         mounted () {
+            // MessageBox('提示', '进来了进来了');
+            // this.parameter = JSON.parse(this.$route.params.parameter);
+            // this.id = this.parameter.id;
             this.id = this.$route.params.id;
+            this.payid = this.$route.params.payid;
             this.getOrderInfo();
+            this.isDefaultAddress();
+            console.log(this.parameter)
         },
         methods: {
             getOrderInfo () {
@@ -61,24 +70,27 @@
             isDefaultAddress () {
                 myFn.ajax('get', {}, apiAddress.center.isDefaultAddress, (res) => {
                     this.addressID = res.data.id;
-                    this.submit();
+                    // this.submit();
                 })
             },
             submit () {
                 var api = '';
                 var data = {};
+                var self = this;
                 switch (parseInt(this.value)) {
                     case 1:
+                        // wx.miniProgram.navigateTo({url: '/pages/recharge/recharge?type=certify' + '&id=' + this.parameter.pay_id})
+                        // location.href = location.protocol + '//' + location.hostname + '/mobile/?/#/index/pay/' + id + '/1';
                         api = apiAddress.center.wxPay;
                         data = {
-                            order_id: this.id,
+                            order_id: this.payid,
                             address_id: this.addressID
                         }
                         break;
                     default:
                         api = apiAddress.center.orderPay;
                         data = {
-                            order_id: this.id,
+                            order_id: this.payid,
                             pay_type: this.value,
                             transaction_id: this.orderInfo.order_no,
                             address_id: this.addressID
@@ -89,11 +101,23 @@
                     if (parseInt(this.value) === 1) {
                         this.wxRecharge(res.data.jsApiParameters);
                     } else if (parseInt(this.value) === 4) {
-                        alert('提交成功、请线下进行支付!');
-                        this.$router.push({name: 'pendingReceive'});
+                        MessageBox({
+                            title: '提示',
+                            message: '提交成功、请等待后台确认汇款单据!',
+                            showCancelButton: false
+                        }).then(action => {
+                            self.$router.back(-1);
+                        })
                     } else {
-                        alert('支付成功');
-                        this.$router.push({name: 'pendingReceive'});
+                        // alert('支付成功');
+                        // this.$router.push({name: 'pendingReceive'});
+                        MessageBox({
+                            title: '提示',
+                            message: '支付成功',
+                            showCancelButton: false
+                        }).then(action => {
+                            self.$router.back(-1);
+                        })
                     }
                 })
             },
@@ -102,9 +126,11 @@
                 function onBridgeReady () {
                     WeixinJSBridge.invoke('getBrandWCPayRequest', data, (res) => {
                         if (res.err_msg === 'get_brand_wcpay_request:ok') {
-                            self.$router.push({name: 'pendingReceive'});
+                            // self.$router.push({name: 'pendingReceive'});
+                            self.$router.back(-1);
                         } else {
-                            self.$router.push({name: 'pendingPay'});
+                            self.$router.back(-1);
+                            // self.$router.push({name: 'pendingPay'});
                         }
                     });
                 }
@@ -189,7 +215,7 @@
     }
     .submit-btn {
         padding: 10px;
-        margin-top: 20%;
+        margin-top: 20%!important;
     }
     .lable-wrapper {
         padding: 20px 15px 5px;
@@ -201,7 +227,7 @@
     .select > span {
         position: absolute;
         left: 15px;
-        z-index: 9999;
+        z-index: 1;
         font-size: 24px;
         color: #434652;
     }
@@ -219,7 +245,7 @@
         position: absolute;
         width: 25px;
         height: 25px;
-        z-index: 9999;
+        z-index: 2;
         top: 124px;
         left: 14px;
     }

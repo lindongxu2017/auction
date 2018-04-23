@@ -1,6 +1,11 @@
 <template>
     <div class="specialAuctionDetails">
-        <img class="shopBanner" :src="datainfo.pictures" />
+        <!-- <img class="shopBanner" :src="datainfo.pictures[0]" /> -->
+        <mt-swipe :auto="4000" class="swipe">
+            <mt-swipe-item v-for="(item,key) in datainfo.pictures" :key="item.id">
+                <img class="shopBanner" :src="item" />
+            </mt-swipe-item>
+        </mt-swipe>
         <div class="attribute">
             <div class="attribute_title">
                 <p v-html="datainfo.pname">翡翠</p>
@@ -12,30 +17,30 @@
                 <i></i>
                 <p><span>{{datainfo.stepsize}}</span><br>加价幅度(￥)</p>
             </div>
-            <div class="attribute_details">
+            <div class="attribute_details" v-if="datainfo.status != 1">
                 <div>
                     <span>开拍时间</span>
-                    <span v-html="datainfo.starttime.split(' ')[1]"></span>
-                    <span v-html="datainfo.starttime.split(' ')[0]"></span>
+                    <span v-html="datainfo.starttime?datainfo.starttime.split(' ')[1]:''"></span>
+                    <span v-html="datainfo.starttime?datainfo.starttime.split(' ')[0]:''"></span>
                 </div>
                 <div class="middle-line"></div>
                 <div>
                     <span>结束时间</span>
-                    <span v-html="datainfo.endtime.split(' ')[1]"></span>
-                    <span v-html="datainfo.endtime.split(' ')[0]"></span>
+                    <span v-html="datainfo.endtime?datainfo.endtime.split(' ')[1]:''"></span>
+                    <span v-html="datainfo.endtime?datainfo.endtime.split(' ')[0]:''"></span>
                 </div>
             </div>
         </div>
-        <div class="box offer-log">
+        <div v-if="offer_list.length > 0" class="box offer-log">
             <div v-for="(item,index) in offer_list" :class="offer_list.length == index + 1 ?'border-none':''">
                 <img :src="item.headimgurl">
                 <span v-html="'￥' + item.bided"></span>
                 <div>
-                    <p v-html="item.nickname" style="min-height: 21px;">托尔斯泰</p>
-                    <p>2017-02-05 12:00:00</p>
+                    <p style="min-height:21px;" v-html="item.nickname">托尔斯泰</p>
+                    <p v-html="item.time">2017-02-05 12:00:00</p>
                 </div>
             </div>
-            <p @click="checkMore">查看更多出价人 ></p> <!-- v-if="offer_list.length > 2" -->
+            <p v-if="offer_list.length > 2" @click="checkMore">查看更多出价人 ></p>
         </div>
         <div class="box">
             <p class="title">拍品参数</p>
@@ -53,24 +58,25 @@
                 <img class="shopBanner" v-for="item in datainfo.cert_img" :src="item"/>
             </div>
         </div>
-        <!-- <div class="button-group" v-if="type == 1">
-            <mt-button class="remind" @click="set_remind(1)">提醒(提前30分)</mt-button>
-            <mt-button class="remind" @click="set_remind(0)">关闭提醒</mt-button>
-            <mt-button type="danger" class="offer" @click="offer" 
-            v-html="datainfo.self_raise_info.money?'出价' + datainfo.self_raise_info.money:'出价'"></mt-button>
-        </div>
-        <offer :popup="ispopup" :currentMoney="datainfo.nowprice" :limit="datainfo.stepsize" :shopId="id" @input="close_popup"></offer> -->
+        <!-- <div class="button-group" v-if="type == 2"> ||是否已结束
+            <mt-button class="remind" v-if="is_warm == 1" @click="set_remind(1)">提醒(提前30分)</mt-button>
+            <mt-button class="remind" v-if="is_warm == 0" @click="set_remind(0)">关闭提醒</mt-button>
+        </div> -->
+        <offer :popup="ispopup" :currentMoney="datainfo.nowprice" :limit="datainfo.stepsize" :shopId="id" @input="close_popup"></offer>
     </div>
 </template>
 <script>
+    import { Indicator } from 'mint-ui';
     import offer from '../tools/offer.vue'
     export default {
         name: 'specialAuctionDetails',
         data () {
             return {
+                // is_warm: 1：未提醒, is_warm: 0：已提醒
+                is_warm: 1,
                 // 拍品ID
                 id: '',
-                // 拍品类型 type 1：正在拍, type 2：已经结束
+                // 拍品类型 type 1：专场拍卖, type 2：拍卖会
                 type: '',
                 datainfo: {
                     nowprice: 0
@@ -78,6 +84,21 @@
                 ispopup: false,
                 offer_list: []
             }
+        },
+        beforeRouteEnter (to, from, next) {
+            if (localStorage.userInfo) {
+                if (from.path === '/index/auction/room/' + JSON.parse(localStorage.userInfo).uid) {
+                    Indicator.close();
+                    window.is_inroom = false;
+                    if (window.websocket) {
+                        window.websocket.send(JSON.stringify({type: 'exit_room', room_id: 1}))
+                        window.websocket.close();
+                        window.websocket = false;
+                    }
+                    clearInterval(window.periods_timer)
+                };
+            };
+            next()
         },
         mounted () {
             this.id = this.$route.params.id;
@@ -93,9 +114,11 @@
             },
             getOfferLog () {
                 myFn.ajax('get', {pid: this.id}, apiAddress.center.offerLog, (res) => {
-                    for (var i = 0; i < res.data.data.length; i++) {
-                        this.offer_list.push(res.data.data[i]);
-                        if (i > 1) return false;
+                    if (res.data.data) {
+                        for (var i = 0; i < res.data.data.length; i++) {
+                            this.offer_list.push(res.data.data[i]);
+                            if (i > 1) return false;
+                        };
                     };
                 })
             },
@@ -108,21 +131,23 @@
             },
             checkMore () {
                 this.$router.push({name: 'offerList', params: {id: this.id}})
+            },
+            set_remind (type) {
+                // type == 0 关闭提醒
+                // type == 1 开启提醒
+                var api = '';
+                if (type === 1) {
+                    this.is_warm = 0;
+                    api = apiAddress.specialAuction.open_remind;
+                } else {
+                    this.is_warm = 1;
+                    api = apiAddress.specialAuction.close_remind;
+                }
+                var data = {
+                    pid: this.id
+                }
+                myFn.ajax('post', data, api, (res) => {});
             }
-            // set_remind (type) {
-            //     // type == 0 关闭提醒
-            //     // type == 1 开启提醒
-            //     var api = ''
-            //     if (type === 1) {
-            //         api = apiAddress.specialAuction.open_remind;
-            //     } else {
-            //         api = apiAddress.specialAuction.close_remind;
-            //     }
-            //     var data = {
-            //         pid: this.id
-            //     }
-            //     myFn.ajax('post', data, api, (res) => {});
-            // }
         },
         components: {
             offer
@@ -241,7 +266,12 @@
         width: 100%;
         word-spacing: -5px;
     }
-
+    .button-group button {
+        width: 100%;
+        font-size: 16px;
+        background: #ef4f4f;
+        color: #fff;
+    }
     .offer, .remind {
         border-radius: 0;
     }

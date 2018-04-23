@@ -1,5 +1,5 @@
 <template>
-    <div class="pendingReceive">
+    <div class="pendingReceive" v-infinite-scroll="loadMore" :infinite-scroll-disabled="loading" infinite-scroll-distance="10">
         <div class="list">
             <div class="order-wrapper" v-for="item in list">
                 <p class="creat-time">下单时间：<span v-html="item.format_time">2017/05/05 18:30</span></p>
@@ -35,19 +35,29 @@
             return {
                 list: [],
                 getData: {
-                    page: 1,
+                    page: 0,
                     status: 1
-                }
+                },
+                loading: false,
+                total: 1
             }
         },
         mounted () {
-            this.getlist();
+            // this.getlist();
         },
         methods: {
-            getlist () {
-                myFn.ajax('get', this.getData, apiAddress.center.order, (res) => {
-                    this.list = res.data.data;
-                })
+            loadMore () {
+                this.loading = true;
+                setTimeout(() => {
+                    this.loading = false;
+                    if (this.list.length >= this.total) return false;
+                    this.getData.page ++;
+                    myFn.ajax('get', this.getData, apiAddress.center.order, (res) => {
+                        if (res.data.data) {
+                            this.list = this.list.concat(res.data.data);
+                        }
+                    })
+                }, 500)
             },
             confirm (id) {
                 myFn.ajax('post', {order_id: id}, apiAddress.center.confirmReceipt, (res) => {
@@ -154,7 +164,7 @@
         font-size: 0;
     }
     .order-operation > div {
-        width: 50%;
+        /* width: 50%; */
         display: inline-block;
         font-size: 14px;
         vertical-align: middle;

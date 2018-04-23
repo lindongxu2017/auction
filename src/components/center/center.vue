@@ -2,14 +2,14 @@
     <div class="center">
         <div class="header">
             <div class="head-img">
-                <span><img :src="experience.curr_rank_img" width="25"></span>
+                <span><img v-if="is_auth != 0" :src="experience.curr_rank_img" width="25"></span>
                 <img :src="userInfo.wximg || require('../../assets/icon/nav/index.png')">
             </div>
             <div class="user-info">
-                <p class="name" v-html="userInfo.nickname">杰克斯派洛</p>
-                <p>经验：{{experience.curr_rank_point}}/{{experience.max_rank_point}}</p>
-                <p>身份：{{experience.curr_rank_name}}
-                <mt-button v-if="is_auth == 0" class="authentication-btn" size="small" @click.native="routerName='certify'">认证</mt-button></p>
+                <p class="name" :class="[level<9?'':'max']" v-html="userInfo.nickname">杰克斯派洛</p>
+                <p v-if="is_auth != 0 && level < 9">经验：{{experience.curr_rank_point}}/{{experience.max_rank_point}}</p>
+                <p>身份：<span style="color:#fff;" v-html="is_auth != 0?experience.curr_rank_name:'游客'"></span>
+                <mt-button v-if="is_auth == 0" class="authentication-btn" size="small" @click.native="goCertify">认证</mt-button></p>
             </div>
         </div>
         <div class="my-order">
@@ -26,7 +26,10 @@
             <mt-cell title="个人信息" @click.native="routerName='personInfo'" is-link></mt-cell>
             <mt-cell title="收货地址" @click.native="routerName='address'" is-link></mt-cell>
             <mt-cell title="保证金" @click.native="routerName='bond'" is-link></mt-cell>
-            <a :href="'tel:' + telephone"><mt-cell title="联系客服" is-link></mt-cell></a>
+            <mt-cell title="联系客服" @click.native="concat" is-link></mt-cell>
+            <!-- <a :href="'tel:' + telephone"><mt-cell title="客服微信">
+                <span v-html="wx_num"></span>
+            </mt-cell></a> -->
         </div>
     </div>
 </template>
@@ -41,22 +44,12 @@
                 routerName: '',
                 telephone: '',
                 experience: {},
-                is_auth: ''
+                is_auth: '',
+                level: ''
             }
         },
-        beforeMount (to, from, next) {
-            if (localStorage.userInfo) return;
-            myFn.wxlogin();
-        },
-        beforeRouteEnter (to, from, next) {
-            console.log(to.path);
-            console.log(from.path);
-            next(() => {
-                console.log(1);
-            })
-        },
         mounted () {
-            this.getTelephone();
+            // this.getTelephone();
             this.getExperience();
             this.getInfo();
         },
@@ -65,12 +58,19 @@
                 myFn.ajax('get', {}, apiAddress.center.userData, (res) => {
                     this.userInfo = res.data;
                     this.is_auth = res.data.is_auth;
+                    localStorage.is_auth = parseInt(res.data.is_auth);
                 })
             },
+            goCertify () {
+                // this.$router.push({name: 'certify'});
+                // wx.miniProgram.navigateTo({url: '/pages/certify/certify'});
+                location.href = location.protocol + '//' + location.hostname + '/mobile/?/#/index/center/certify'
+            },
+            concat () {
+                this.$router.push({name: 'customer'});
+            },
             routerlink () {
-                if (this.routerName === 'certify') {
-                    location.href = location.protocol + '//' + location.hostname + '/mobile/?/#/index/center/certify'
-                } else if (parseInt(this.is_auth) === 0) {
+                if (parseInt(this.is_auth) === 0) {
                     MessageBox('提示', '请先认证账户');
                     return false;
                 } else {
@@ -85,6 +85,7 @@
             getExperience () {
                 myFn.ajax('get', {}, apiAddress.center.experience, (res) => {
                     this.experience = res.data;
+                    this.level = parseInt(res.data.curr_rank_name[0]);
                 })
             }
         },
@@ -175,6 +176,11 @@
         font-size: 17px;
         margin-top: 5px;
         margin-bottom: 10px;
+    }
+    .user-info .name.max {
+        margin-top: 15px;
+        margin-bottom: 15px;
+        font-size: 24px;
     }
     .user-info p {
         font-size: 14px;

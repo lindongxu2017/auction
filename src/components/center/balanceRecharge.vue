@@ -7,12 +7,14 @@
                 <div><input type="text" placeholder="0.00" v-model="total_money"></div>
             </div>
             <p style="margin-top:10px;">
-                <span v-html="type == 1?'当前余额为￥':'当前保证金为￥'"></span>
-                <span v-html="type == 1?userData.cost:userData.wallet_pledge"></span>
-                <span>，最低充值1元</span>
+                <span v-html="type == 1?'当前保证金为￥':'当前余额为￥'"></span>
+                <span v-html="type == 1?userData.wallet_pledge:userData.cost"></span>
+                <span>。</span>
+                <!-- <span>。最低充值1元</span> -->
             </p>
         </div>
         <div class="submit-btn">
+            <!-- <mt-button type="primary" size="large" @click="submit">充值</mt-button> -->
             <mt-button type="primary" size="large" @click="submit">充值</mt-button>
         </div>
     </div>
@@ -25,7 +27,8 @@
             return {
                 total_money: '',
                 type: '',
-                userData: {}
+                userData: {},
+                orderID: ''
             }
         },
         mounted () {
@@ -36,6 +39,12 @@
             checkout_balance () {
                 myFn.ajax('get', {}, apiAddress.center.userData, (res) => {
                     this.userData = res.data;
+                })
+            },
+            creat_order () {
+                myFn.ajax('post', {type: this.type, total: this.total_money}, apiAddress.admin.orderID, (res) => {
+                    this.orderID = res.data.order_id;
+                    // wx.miniProgram.navigateTo({url: '/pages/recharge/recharge?type=' + this.type + '&id=' + this.orderID})
                 })
             },
             submit () {
@@ -60,13 +69,13 @@
                             if (parseInt(self.type) === 1) {
                                 self.$router.push({name: 'balance'})
                             } else {
-                                self.$routerpush({name: 'center'})
+                                self.$router.push({name: 'center'})
                             }
                         } else {
                             if (parseInt(self.type) === 1) {
-                                self.$routerpush({name: 'balance'})
+                                self.$router.push({name: 'balance'})
                             } else {
-                                self.$routerpush({name: 'center'})
+                                self.$router.push({name: 'center'})
                             }
                         }
                     });

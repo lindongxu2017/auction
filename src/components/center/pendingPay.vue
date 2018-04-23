@@ -1,12 +1,12 @@
 <template>
-    <div class="pendingPay">
+    <div class="pendingPay" v-infinite-scroll="loadMore" :infinite-scroll-disabled="loading" infinite-scroll-distance="10">
         <div class="list">
             <div class="order-wrapper" v-for="(item,index) in list">
                 <p class="creat-time">下单时间：<span v-html="item.format_time">2017/05/05 18:30</span></p>
                 <div class="order-content">
                     <div class="order-info" @click="goPage(item.id, item.pid)">
                         <mt-cell>
-                            <img slot="icon" :src="item.pictures">
+                            <img slot="icon" :src="item.image">
                             <span slot="title" class="text-content">
                                 <p class="goods-name title" v-html="item.pname"></p>
                                 <p class="goods-classify">类型：<span v-html="item.order_type==1?'专场订单':'拍卖会订单'">0元起拍</span></p>
@@ -18,11 +18,12 @@
                     <div class="order-operation">
                         <div class="btn-group">
                             <!-- <mt-button type="default" size="small">取消</mt-button> -->
-                            <mt-button type="default" size="small" @click="goPay(item.id)">付款</mt-button>
+                            <mt-button type="default" size="small" @click="goPay(item.id, item.pay_id)">付款</mt-button>
                         </div>
                         <div>
                             <p>请<span class="losetime">{{init[index].losetime | getDate}}</span>之前完成支付。</p>
                             <p>剩余时间：<span>{{item.losetime}}</span></p>
+                            <p v-if="item.pay_type == 4" style="margin-top:10px;">*您已进行线下汇款，请等待官方审核！</p>
                         </div>
                     </div>
                 </div>
@@ -33,45 +34,82 @@
 </template>
 
 <script>
+    import { MessageBox } from 'mint-ui';
     export default {
         name: 'pendingPay',
         data () {
             return {
                 list: [],
                 getData: {
-                    page: 1,
+                    page: 0,
                     status: 0
                 },
-                init: []
+                init: [],
+                addressID: '',
+                loading: false,
+                total: 1
             }
         },
         mounted () {
-            this.getlist();
             setInterval(() => {
                 this.getMinus()
             }, 1000)
+            this.isDefaultAddress();
         },
         methods: {
-            getlist () {
-                myFn.ajax('get', this.getData, apiAddress.center.order, (res) => {
-                    this.list = res.data.data;
-                    localStorage.orderlist = JSON.stringify(res.data.data);
-                    this.init = JSON.parse(localStorage.orderlist);
+            loadMore () {
+                this.loading = true;
+                setTimeout(() => {
+                    this.loading = false;
+                    if (this.list.length >= this.total) return false;
+                    this.getData.page ++;
+                    myFn.ajax('get', this.getData, apiAddress.center.order, (res) => {
+                        if (res.data.data) {
+                            this.list = this.list.concat(res.data.data);
+                            localStorage.orderlist = JSON.stringify(this.list);
+                            this.init = JSON.parse(localStorage.orderlist);
+                        }
+                    })
+                }, 500)
+            },
+            isDefaultAddress () {
+                myFn.ajax('get', {}, apiAddress.center.isDefaultAddress, (res) => {
+                    this.addressID = res.data.id;
                 })
             },
-            goPay (id) {
-                // this.$router.push({name: 'pay', params: {id: id}})
-                location.href = location.protocol + '//' + location.hostname + '/mobile/?/#/index/pay/' + id;
+            goPay (id, payid, type) {
+                this.isDefaultAddress();
+                if (parseInt(type) === 4) {
+                    MessageBox('提示', '您已进行线下汇款，请勿重复付款，如有疑问请联系客服！')
+                    return false;
+                };
+                if (!this.addressID) {
+                    // MessageBox('提示', '您还没有默认地址，请前往个人中心填写收货地址！')
+                    MessageBox.confirm('您还没有默认地址，请前往个人中心填写收货地址！').then(action => {
+                        this.$router.push({name: 'address'})
+                    });
+                    return false;
+                };
+                /* var parameter = JSON.stringify({
+                    id: id,
+                    pay_id: payid,
+                    adr: this.addressID
+                }) */
+                // this.$router.push({name: 'pay', params: {parameter: parameter}})
+                location.href = location.protocol + '//' + location.hostname + '/mobile/?/#/index/pay/' + id + '/' + payid;
+                // wx.miniProgram.navigateTo({url: '/pages/pay/pay?parameter=' + parameter});
             },
             goPage (id, pid) {
                 this.$router.push({name: 'orderDetails', params: {id: id, pid: pid}})
             },
             getMinus () {
-                var nowTime = Math.round(new Date().getTime() / 1000);
-                for (var i = 0; i < this.list.length; i++) {
-                    var value = this.init[i].losetime;
-                    this.list[i].losetime = myFn.arrive_timer_format(value - nowTime)
-                };
+                if (this.list) {
+                    var nowTime = Math.round(new Date().getTime() / 1000);
+                    for (var i = 0; i < this.list.length; i++) {
+                        var value = this.init[i].losetime;
+                        this.list[i].losetime = myFn.arrive_timer_format(value - nowTime)
+                    };
+                }
             }
         },
         filters: {

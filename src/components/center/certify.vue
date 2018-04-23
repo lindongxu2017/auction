@@ -9,7 +9,7 @@
         <div class="submit-btn">
             <mt-button class="authentication-btn" type="primary" size="large" @click.native="binding">认证</mt-button>
         </div>
-        <p class="tips">本次认证需支付保证金￥500</p>
+        <p class="tips">本次认证需支付保证金￥{{min_deposit}}</p>
     </div>
 </template>
 
@@ -22,7 +22,8 @@
                 phone: '',
                 captcha: '',
                 codeTitle: '获取',
-                min_deposit: ''
+                min_deposit: '',
+                orderID: ''
             }
         },
         beforeRouteEnter (to, from, next) {
@@ -37,6 +38,12 @@
             get_bond () {
                 myFn.ajax('get', {}, apiAddress.center.getBond, (res) => {
                     this.min_deposit = res.data.min_deposit;
+                    this.get_orderID(this.min_deposit);
+                })
+            },
+            get_orderID (value) {
+                myFn.ajax('post', {total: value, type: 1}, apiAddress.admin.orderID, (res) => {
+                    this.orderID = res.data.order_id;
                 })
             },
             getCode () {
@@ -45,7 +52,7 @@
                         alert('请输入手机号');
                         return;
                     };
-                    myFn.ajax('post', {mobile: this.phone}, apiAddress.admin.getMobileCode, (res) => {
+                    myFn.ajax('post', {mobile: this.phone}, apiAddress.center.getCode, (res) => {
                         console.log(res);
                         this.codeTitle = '60s';
                         this.set_codeTime();
@@ -64,8 +71,10 @@
                     alert('请输入验证码');
                     return;
                 };
-                myFn.ajax('post', {mobile: this.phone, code: this.captcha}, apiAddress.admin.binding, () => {
+                myFn.ajax('post', {mobile: this.phone, code: this.captcha}, apiAddress.center.modify, () => {
+                    // wx.miniProgram.navigateTo({url: '/pages/recharge/recharge?type=certify' + '&id=' + this.orderID})
                     myFn.ajax('post', {total: this.min_deposit}, apiAddress.center.bondMoney, (res) => {
+                        // alert('调取支付接口')
                         self.wxRecharge(res.data.jsApiParameters);
                     })
                 })

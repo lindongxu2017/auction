@@ -76,7 +76,7 @@
     }
     .attribute p {
         margin: 10px;
-        font-size: 16px;
+        font-size: 15px;
         color: #585b67;
         overflow: hidden;
         white-space: nowrap;

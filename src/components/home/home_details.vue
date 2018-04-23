@@ -2,17 +2,17 @@
     <div class="homeDetails">
         <img class="shopBanner"  :src="data.pictures" />
         <div class="attribute">
-            <div class="support" @click="toggleSupport()">
-                <span :class="data.is_support == 1 ?'is_support':''" class="iconfont icon-dianzan"></span>
-                <span v-html="data.support_num"></span>
-            </div>
             <div class="attribute_title">
                 <p v-html="data.title"></p>
-                <p class="money">
+                <div class="money">
                     <span>市场价格:</span>
                     <span>￥</span>
                     <span v-html="data.price"></span>
-                </p>
+                    <div class="support" @click="toggleSupport()">
+                        <span :class="data.is_support == 1 ?'is_support':''" class="iconfont icon-dianzan"></span>
+                        <span v-html="data.support_num"></span>
+                    </div>
+                </div>
             </div>
             <div class="attribute_details">
                 <span v-for="item in data.goods_attr">{{item.attr_name}}：{{item.attr_value}}</span>
@@ -80,7 +80,7 @@
         background: #fff;
         padding: 10px 10px;
         line-height: 30px;
-        position: relative;
+        /* position: relative; */
     }
     .attribute_title {
         padding: 0px 10px;
@@ -92,8 +92,9 @@
         font-size: 14px;
         margin-top: 7px;
         height: 30px;
+        position: relative;
     }
-    .attribute_title .money span {
+    .attribute_title .money > span {
         display: inline-block;
         position: absolute;
         font-size: 14px;
@@ -101,7 +102,7 @@
     }
     .attribute_title .money span:nth-child(2) {
         left: 85px;
-        top: 50px;
+        top: 3px;
         color: #ad9355;
     }
     .attribute_title .money span:nth-child(3) {
@@ -117,13 +118,13 @@
         font-size: 0px;
     }
     .attribute_details span {
-        width: 50%;
+        min-width: 50%;
         display: inline-block;
         font-size: 14px;
     }
-    .attribute_details span:nth-child(even) {
+    /* .attribute_details span:nth-child(even) {
         text-align: right;
-    }
+    } */
     .box {
         background: #fff;
         margin-top: 7px;
@@ -147,8 +148,8 @@
     }
     .support {
         position: absolute;
-        right: 20px;
-        top: 53px;
+        right: 0px;
+        top: 5px;
         text-align: center;
         font-size: 14px;
         line-height: 15px;
