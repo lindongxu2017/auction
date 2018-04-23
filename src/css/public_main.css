@@ -1,0 +1,65 @@
+.certify,
+.pendingPay,
+.balanceRecharge,
+.incomeDetails,
+.modifyPhoneNumber,
+.protectRights,
+.balance,
+.personInfo,
+.address,
+.addressEdit,
+.bond,
+.orderDetails,
+.pay,
+.offerList {
+    position: absolute;
+    width: 100%;
+    min-height: 100%;
+    background: #fff;
+}
+input::-webkit-input-placeholder, textarea::-webkit-input-placeholder,
+input:-moz-placeholder, textarea:-moz-placeholder,
+input::-moz-placeholder, textarea::-moz-placeholder,
+input:-ms-input-placeholder, textarea:-ms-input-placeholder {
+    color:  #DEDDD7;
+}
+* {
+    font-family: 'Microsoft Yahei'
+}
+.mint-cell-allow-right::after {
+    width: 10px;
+    height: 10px;
+    right: 10px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    right: 20px;
+    border-color: #c4be9c;
+}
+.mint-cell-value.is-link {
+    margin-right: 30px;
+}
+.mint-indicator {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    background: rgba(0,0,0,0.5)
+}
+.mint-indicator-mask {
+    z-index: 10000;
+}
+.submit-btn {
+    padding: 10px;
+    margin-top: 40% !important;
+    text-align: center;
+}
+.submit-btn button {
+    display: inline-block;
+    width: 80%;
+    margin: auto;
+    background: #1B1A1D;
+    border: none;
+    color: #fff;
+}
